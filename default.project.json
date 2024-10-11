@@ -1,0 +1,12 @@
+{
+  "name": "sentinel.sdk",
+  "tree": {
+    "$className": "DataModel",
+
+    "ServerScriptService": {
+      "Sentinel": {
+        "$path": "src/Sentinel"
+      }
+    }
+  }
+}
