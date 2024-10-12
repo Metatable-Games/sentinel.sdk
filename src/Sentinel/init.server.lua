@@ -4,6 +4,7 @@
 -- Repository: https://github.com/Metatable-Games/sentinel.sdk
 
 local Config = require(script:WaitForChild("Config"))
+local types = require(script:WaitForChild("Types"))
 local enum = require(script:WaitForChild("Enum"))
 local API = require(script:WaitForChild("SentinelAPI"))
 
@@ -46,13 +47,25 @@ local function f64(input)
 end
 
 local function PlayerAdded(Player: Player)
-    local isBanned: boolean, banInfo: any = API:IsPlayerBanned(Player);
+    local isBanned: boolean, banInfo: types.BanInfo? = API:IsPlayerBanned(Player);
 
     if Config.API_KEY == "INPUT_API_KEY_HERE" then
         return Player:Kick(f64(message_a))
     end
 
     if isBanned then
+        -- Player was offline banned remotely; therefore proccess internal banning aspect.
+        API:ReplicateUpdatedBan(Player.UserId, {
+			Moderator = banInfo.moderatorId,
+            BanType = banInfo.isGlobal and enum.BanType.Global or enum.BanType.Experience,
+			BanLengthType = banInfo.expires > 0 and enum.BanLengthType.Temporary or enum.BanLengthType.Permanent,
+			BanUniversal = banInfo.experienceUniversal,
+			BanLength = banInfo.expires > 0 and banInfo.expires or 0,
+			PrivateReason = banInfo.privateReason,
+			PublicReason = banInfo.publicReason,
+            BanKnownAlts = true,
+        });
+        
         return Player:Kick(f64(message_b):format(banInfo.publicReason))
     end
     

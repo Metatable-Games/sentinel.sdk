@@ -143,16 +143,23 @@ function API:OfflineBanAsync(UserId: number, BanConfig: types.BanConfig): boolea
 		return false
 	end
 
-	if BanConfig.BanLengthType == enum.BanLengthType.Temporary then
-		RichBan:TempbanPlayerAsync(
-			{ UserId },
-			BanConfig.BanLength,
-			BanConfig.PrivateReason,
-			BanConfig.PublicReason,
-			BanConfig.BanUniversal
-		)
-	else
-		RichBan:PermbanPlayerAsync({ UserId }, BanConfig.PrivateReason, BanConfig.PublicReason, BanConfig.BanUniversal)
+	if Config.USE_RBLX_BANS then
+		if BanConfig.BanLengthType == enum.BanLengthType.Temporary then
+			RichBan:TempbanPlayerAsync(
+				{ UserId },
+				BanConfig.BanLength,
+				BanConfig.PrivateReason,
+				BanConfig.PublicReason,
+				BanConfig.BanUniversal
+			)
+		else
+			RichBan:PermbanPlayerAsync(
+				{ UserId },
+				BanConfig.PrivateReason,
+				BanConfig.PublicReason,
+				BanConfig.BanUniversal
+			)
+		end
 	end
 
 	return true
@@ -190,7 +197,6 @@ function API:IsUserIdBanned(UserId: number): boolean
 	end
 
 	local data = HttpService:JSONDecode(response.Body)
-
 
 	-- Ban automatically expired; therefore remove.
 	if data.isAppealed then
@@ -270,11 +276,13 @@ function API:ProccessPendingBans()
 
 		local success: boolean = self:ReplicateUpdatedBan(list.robloxId, {
 			Moderator = v.moderatorId,
+			BanType = v.isGlobal and enum.BanType.Global or enum.BanType.Experience,
 			BanLengthType = v.expires > 0 and enum.BanLengthType.Temporary or enum.BanLengthType.Permanent,
 			BanUniversal = v.experienceUniversal,
 			BanLength = v.expires > 0 and v.expires or 0,
 			PrivateReason = v.privateReason,
 			PublicReason = v.publicReason,
+			BanKnownAlts = true,
 		})
 
 		if success then

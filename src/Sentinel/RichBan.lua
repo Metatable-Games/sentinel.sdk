@@ -42,7 +42,11 @@
 local PlayerService = game:GetService("Players")
 local ModerationModule = {}
 
-function ModerationModule:ConvertTimestamp(Timestamp: string)
+function ModerationModule:ConvertTimestamp(Timestamp: string | number)
+	if typeof(Timestamp) == "number" then
+		return Timestamp;
+	end
+	
 	-- Convert timestrings like 6d into seconds
 	local Multipliers = {
 		s = 1,
