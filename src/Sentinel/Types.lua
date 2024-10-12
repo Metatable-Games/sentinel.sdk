@@ -13,8 +13,8 @@ export type BanInfo = {
     isGlobal: boolean;
     isActive: boolean;
     isAppealed: boolean;
-    privateReason: boolean;
-    publicReason: boolean;
+    privateReason: string;
+    publicReason: string;
     experienceUniversal: boolean;
     robloxId: number;
     moderatorId: number;

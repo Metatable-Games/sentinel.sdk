@@ -1,7 +1,7 @@
 return {
     DEBUG_INFO_ENABLED = true;
 
-    API_KEY = "INPUT_YOUR_KEY_HERE"; -- -- To create an API key go to your guild and run /newapikey. Running this command invalidates previous key & creates a new one.
+    API_KEY = "INPUT_API_KEY_HERE"; -- -- To create an API key go to your guild and run /newapikey. Running this command invalidates previous key & creates a new one.
    
     API_ENTRY = "https://sentinel.metatable.dev/api/v1"; -- DO NOT EDIT API_ENTRY UNLESS YOU HOST YOUR OWN API!
 

@@ -89,7 +89,7 @@ function API:OfflineBanAsync(UserId: number, BanConfig: types.BanConfig): boolea
 		BanConfig._bypassChecks = false
 	end
 
-	assert(typeof(BanConfig.Moderator) == "boolean", "Moderator must be a 'number'.")
+	assert(typeof(BanConfig.Moderator) == "number", "Moderator must be a 'number'.")
 	assert(typeof(BanConfig.BanKnownAlts) == "boolean", "BanKnownAlts must be a 'boolean'.")
 	assert(typeof(BanConfig.BanUniversal) == "boolean", "BanUniversal must be a 'boolean'.")
 
@@ -114,7 +114,7 @@ function API:OfflineBanAsync(UserId: number, BanConfig: types.BanConfig): boolea
 		Method = "POST",
 		Headers = {
 			["Content-Type"] = "application/json",
-			["x-api-key"] = Config.API_KEY,
+			["Authorization"] = "Bearer " .. Config.API_KEY,
 		},
 		Body = HttpService:JSONEncode({
 			overwrite = BanConfig._bypassChecks,
@@ -123,7 +123,9 @@ function API:OfflineBanAsync(UserId: number, BanConfig: types.BanConfig): boolea
 			banModerator = BanConfig.Moderator,
 			banType = BanConfig.BanType,
 			banLengthType = BanConfig.BanLengthType,
-			banLength = BanConfig.BanLengthType == enum.BanLengthType.Temporary and BanConfig.BanLength or false,
+			banLength = BanConfig.BanLengthType == enum.BanLengthType.Temporary and RichBan:ConvertTimestamp(
+				BanConfig.BanLength
+			) or false,
 			banPublicReason = BanConfig.PublicReason,
 			banPrivateReason = BanConfig.PrivateReason,
 		}),
@@ -183,20 +185,26 @@ function API:IsUserIdBanned(UserId: number): boolean
 				response.StatusMessage
 			)
 		end
+
 		return false
 	end
 
 	local data = HttpService:JSONDecode(response.Body)
 
+
 	-- Ban automatically expired; therefore remove.
 	if data.isAppealed then
-		data.isActive = true
-		data.expires = 1
+		data.isActive = false
+		data.expires = 0
+		--warn("Ban appealed.")
+		self:UnbanAsync(data.robloxId, "Ban was appealed.")
 	end
 
 	if data.isActive and data.expires > 0 and data.expires <= os.time() then
 		data.isActive = false
-		self:UnbanAsync(data.robloxId, "Ban automatically expired or was appealed.")
+		data.expires = 0
+		--warn("Ban expired.")
+		self:UnbanAsync(data.robloxId, "Ban automatically expired.")
 	end
 
 	return data.isActive, data
@@ -215,10 +223,11 @@ function API:UnbanAsync(UserId: number, Reason: string): boolean
 		Method = "POST",
 		Headers = {
 			["Content-Type"] = "application/json",
+			["Authorization"] = "Bearer " .. Config.API_KEY,
 		},
 		Body = HttpService:JSONEncode({
 			userId = UserId,
-            reason = Reason,
+			reason = Reason,
 			experienceId = game.PlaceId,
 		}),
 	})
@@ -235,14 +244,18 @@ function API:UnbanAsync(UserId: number, Reason: string): boolean
 		return false
 	end
 
-    return true
+	return true
 end
 
 function API:ProccessPendingBans()
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
-	local list: types.BanList = self:GetPendingBans()
+	local list: types.BanList? = self:GetPendingBans()
 	local f: number, s: number = 0, 0
+
+	if list == nil then
+		return
+	end
 
 	for i, v: types.BanInfo in pairs(list) do
 		if v.isAppealed then
@@ -250,7 +263,7 @@ function API:ProccessPendingBans()
 			v.expires = 1
 		end
 
-        -- Ban expired before chance to ban.
+		-- Ban expired before chance to ban.
 		if v.isActive and v.expires > 0 and v.expires <= os.time() then
 			continue
 		end
@@ -285,8 +298,12 @@ end
 function API:ProccessPendingUnbans()
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
-	local list: types.BanList = self:GetPendingUnbans()
+	local list: types.BanList? = self:GetPendingUnbans()
 	local f: number, s: number = 0, 0
+
+	if list == nil then
+		return
+	end
 
 	for i, v in pairs(list) do
 		local success: boolean = self:UnbanAsync(list.robloxId, "Ban automatically expired or was appealed.")
@@ -309,18 +326,16 @@ function API:ProccessPendingUnbans()
 	end
 end
 
-function API:GetPendingBans(): types.BanList
+function API:GetPendingBans(): types.BanList?
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
 	local response = HttpService:RequestAsync({
-		Url = Config.API_ENTRY .. "/pending-bans",
+		Url = Config.API_ENTRY .. "/pending-bans?experienceId=" .. game.PlaceId,
 		Method = "GET",
 		Headers = {
 			["Content-Type"] = "application/json",
+			["Authorization"] = "Bearer " .. Config.API_KEY,
 		},
-		Body = HttpService:JSONEncode({
-			experienceId = game.PlaceId,
-		}),
 	})
 
 	if not response.Success or response.Success and response.StatusCode ~= 200 then
@@ -331,24 +346,23 @@ function API:GetPendingBans(): types.BanList
 				response.StatusMessage
 			)
 		end
-		return false
+
+		return nil
 	end
 
 	return HttpService:JSONDecode(response.Body).list
 end
 
-function API:GetPendingUnbans(): types.BanList
+function API:GetPendingUnbans(): types.BanList?
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
 	local response = HttpService:RequestAsync({
-		Url = Config.API_ENTRY .. "/pending-unbans",
+		Url = Config.API_ENTRY .. "/pending-unbans?experienceId=" .. game.PlaceId,
 		Method = "GET",
 		Headers = {
 			["Content-Type"] = "application/json",
+			["Authorization"] = "Bearer " .. Config.API_KEY,
 		},
-		Body = HttpService:JSONEncode({
-			experienceId = game.PlaceId,
-		}),
 	})
 
 	if not response.Success or response.Success and response.StatusCode ~= 200 then
@@ -359,7 +373,8 @@ function API:GetPendingUnbans(): types.BanList
 				response.StatusMessage
 			)
 		end
-		return false
+
+		return nil
 	end
 
 	return HttpService:JSONDecode(response.Body).list
