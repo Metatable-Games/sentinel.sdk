@@ -16,6 +16,7 @@ export type BanInfo = {
     privateReason: string;
     publicReason: string;
     experienceUniversal: boolean;
+    experienceBanCompleted: boolean;
     robloxId: number;
     moderatorId: number;
     created: number;

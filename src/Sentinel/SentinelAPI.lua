@@ -110,7 +110,7 @@ function API:OfflineBanAsync(UserId: number, BanConfig: types.BanConfig): boolea
 	end
 
 	local response = HttpService:RequestAsync({
-		Url = Config.API_ENTRY .. "/ban-async",
+		Url = Config.API_ENTRY .. "/ban-async?experienceBanCompleted=true",
 		Method = "POST",
 		Headers = {
 			["Content-Type"] = "application/json",
@@ -268,7 +268,7 @@ function API:ProccessPendingBans()
 			continue
 		end
 
-		local success: boolean = self:BanAsync(list.robloxId, {
+		local success: boolean = self:ReplicateUpdatedBan(list.robloxId, {
 			Moderator = v.moderatorId,
 			BanLengthType = v.expires > 0 and enum.BanLengthType.Temporary or enum.BanLengthType.Permanent,
 			BanUniversal = v.experienceUniversal,
