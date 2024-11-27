@@ -10,4 +10,7 @@ return {
     USE_RBLX_BANS = true; -- This uses Roblox's Banning solution to block alts, etc. Please note that
     -- a user will only be unbanned when someone else connects to the server/while someone else is in-game.
     -- otherwise the ban is "perm".
+
+    UNBAN_LUAUCRON = true;
+    BAN_LUAUCRON = true;
 }

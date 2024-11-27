@@ -314,7 +314,7 @@ function API:ProccessPendingUnbans()
 	end
 
 	for i, v in pairs(list) do
-		local success: boolean = self:UnbanAsync(list.robloxId, "Ban automatically expired or was appealed.")
+		local success: boolean = self:UnbanAsync(list.robloxId, "[luauCRON]: Ban automatically expired or was appealed.")
 
 		if success then
 			s += 1
