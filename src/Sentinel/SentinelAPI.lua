@@ -9,6 +9,7 @@ local enum = require(script.Parent:WaitForChild("Enum"))
 local RichBan = require(script.Parent:WaitForChild("RichBan"))
 
 local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
 
 local API: types.SentinelAPI = {}
 
@@ -138,6 +139,10 @@ function API:OfflineBanAsync(UserId: number, BanConfig: types.BanConfig): boolea
 				response.StatusCode,
 				response.StatusMessage
 			)
+
+			if RunService:IsStudio() then
+				warn("Detailed error message:", response)
+			end
 		end
 
 		return false
