@@ -5,7 +5,7 @@ return {
    
     API_ENTRY = "https://sentinel.metatable.dev/api/v1"; -- DO NOT EDIT API_ENTRY UNLESS YOU HOST YOUR OWN API!
 
-    UPDATE_CYCLE = 5 * 60; -- Update cycle  to proccess pending bans, pending unbans, etc.
+    UPDATE_CYCLE = 1 * 60; -- Update cycle to proccess pending bans, pending unbans, etc.
 
     USE_RBLX_BANS = true; -- This uses Roblox's Banning solution to block alts, etc. Please note that
     -- a user will only be unbanned when someone else connects to the server/while someone else is in-game.
