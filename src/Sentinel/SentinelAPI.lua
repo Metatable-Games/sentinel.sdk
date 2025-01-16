@@ -264,13 +264,8 @@ function API:ProccessPendingBans()
 	end
 
 	for i, v: types.BanInfo in pairs(list) do
-		if v.isAppealed then
-			v.isActive = true
-			v.expires = 1
-		end
-
-		-- Ban expired before chance to ban.
-		if v.isActive and v.expires > 0 and v.expires <= os.time() then
+		if not v.isActive or v.isAppealed or v.expires > 0 and v.expires <= os.time() then
+			warn("Ban expired before chance to ban, Moving on.")
 			continue
 		end
 
