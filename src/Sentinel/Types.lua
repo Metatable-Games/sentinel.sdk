@@ -46,24 +46,4 @@ export type BanList = {
     BanInfo
 }
 
-export type SentinelAPI = {
-	-- Methods
-	BanAsync: (Player: Player, BanConfig: BanConfig) -> boolean,
-	OfflineBanAsync: (UserId: number, BanConfig: BanConfig) -> boolean,
-
-	BatchBanAsync: (PlayerList: { Player }, BanConfig: BanConfig) -> (boolean, number, number),
-	BatchOfflineBanAsync: (UserIds: { number }, BanConfig: BanConfig) -> (boolean, number, number),
-
-    UnbanAsync: (UserId: number, Reason: string) -> boolean,
-
-	IsPlayerBanned: (Player: Player) -> boolean,
-	IsUserIdBanned: (UserId: number) -> boolean,
-
-    ProccessPendingUnbans: () -> void,
-    ProccessPendingBans: () -> void,
-
-    GetPendingBans: () -> BanList,
-    GetPendingUnbans: () -> BanList,
-}
-
 return {}

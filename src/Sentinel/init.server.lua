@@ -55,7 +55,7 @@ local function PlayerAdded(Player: Player)
 		return Player:Kick(f64(message_a))
 	end
 
-	if isBanned then
+	if isBanned and banInfo then
 		-- Player was offline banned remotely; therefore proccess internal banning aspect.
 		API:ReplicateUpdatedBan(Player.UserId, {
 			Moderator = banInfo.moderatorId,
@@ -70,22 +70,6 @@ local function PlayerAdded(Player: Player)
 
 		return Player:Kick(f64(message_b):format(banInfo.publicReason))
 	end
-
-	-- Internal tests.
-	--[[API:BanAsync(Player, {
-        Moderator = 1;
-    
-        BanType = enum.BanType.Experience,
-    
-        BanLengthType = enum.BanLengthType.Permanent,
-        BanLength = 0,
-    
-        PublicReason= "test",
-        PrivateReason = "test 2",
-    
-        BanKnownAlts = false,
-        BanUniversal = false,
-    })]]
 end
 
 Players.PlayerAdded:Connect(PlayerAdded)

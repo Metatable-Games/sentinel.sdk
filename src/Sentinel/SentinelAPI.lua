@@ -11,7 +11,28 @@ local RichBan = require(script.Parent:WaitForChild("RichBan"))
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 
-local API: types.SentinelAPI = {}
+export type SentinelAPI = {
+	-- Methods
+	BanAsync: (Player: Player, BanConfig: types.BanConfig) -> boolean,
+	OfflineBanAsync: (UserId: number, BanConfig: types.BanConfig) -> boolean,
+
+	BatchBanAsync: (PlayerList: { Player }, BanConfig: types.BanConfig) -> (boolean, number, number),
+	BatchOfflineBanAsync: (UserIds: { number }, BanConfig: types.BanConfig) -> (boolean, number, number),
+
+	UnbanAsync: (UserId: number, Reason: string) -> boolean,
+
+	IsPlayerBanned: (Player: Player) -> boolean,
+	IsUserIdBanned: (UserId: number) -> boolean,
+
+	ProccessPendingUnbans: () -> types.void,
+	ProccessPendingBans: () -> types.void,
+
+	GetPendingBans: () -> types.BanList,
+	GetPendingUnbans: () -> types.BanList,
+}
+
+
+local API = {} :: SentinelAPI
 
 function API:BanAsync(Player: Player, BanConfig: types.BanConfig): boolean
 	return self:OfflineBanAsync(Player.UserId, BanConfig)
@@ -274,7 +295,7 @@ function API:ProccessPendingBans()
 			continue
 		end
 
-		local success: boolean = self:ReplicateUpdatedBan(list.robloxId, {
+		local success: boolean = self:ReplicateUpdatedBan(v.robloxId, {
 			Moderator = v.moderatorId,
 			BanType = v.isGlobal and enum.BanType.Global or enum.BanType.Experience,
 			BanLengthType = v.expires > 0 and enum.BanLengthType.Temporary or enum.BanLengthType.Permanent,
@@ -314,7 +335,7 @@ function API:ProccessPendingUnbans()
 	end
 
 	for i, v in pairs(list) do
-		local success: boolean = self:UnbanAsync(list.robloxId, "[luauCRON]: Ban automatically expired or was appealed.")
+		local success: boolean = self:UnbanAsync(v.robloxId, "[luauCRON]: Ban automatically expired or was appealed.")
 
 		if success then
 			s += 1
