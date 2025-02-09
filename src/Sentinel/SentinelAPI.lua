@@ -9,6 +9,8 @@ local enum = require(script.Parent:WaitForChild("Enum"))
 local RichBan = require(script.Parent:WaitForChild("RichBan"))
 
 local HttpService = game:GetService("HttpService")
+local MessagingService = game:GetService("MessagingService")
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 export type SentinelAPI = {
@@ -29,10 +31,35 @@ export type SentinelAPI = {
 
 	GetPendingBans: () -> types.BanList,
 	GetPendingUnbans: () -> types.BanList,
+
+	BindEvents: () -> types.void,
 }
 
 
 local API = {} :: SentinelAPI
+
+function API:BindEvents()
+	MessagingService:SubscribeAsync("SentinelAPI", function(data)
+		data = HttpService:JSONDecode(data);
+
+		assert(data ~= nil, "Data is nil.")
+		assert(data.Command ~= nil, "Command is nil.")
+		assert(typeof(data.Command) == "string", "Command is not a string.")
+
+		if data.Command == "DropPlayer" then
+			assert(data.UserId ~= nil, "UserId is nil.")
+			assert(typeof(data.UserId) == "number", "UserId is not a number.")
+
+			if data.Reason ~= nil then
+				assert(typeof(data.Reason) == "string", "Reason is not a string.")
+			end
+
+			if Players:GetPlayerByUserId(data.UserId) then
+				Players:GetPlayerByUserId(data.UserId):Kick(data.Reason or "You have been kicked from this game by Sentinel Moderation Group.")
+			end
+		end
+	end)
+end
 
 function API:BanAsync(Player: Player, BanConfig: types.BanConfig): boolean
 	return self:OfflineBanAsync(Player.UserId, BanConfig)

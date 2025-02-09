@@ -8,6 +8,8 @@ local types = require(script:WaitForChild("Types"))
 local enum = require(script:WaitForChild("Enum"))
 local API = require(script:WaitForChild("SentinelAPI"))
 
+API:BindEvents();
+
 local Players = game:GetService("Players")
 
 local message_a: string =
