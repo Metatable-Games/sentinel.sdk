@@ -33,12 +33,22 @@ export type SentinelAPI = {
 	GetPendingUnbans: () -> types.BanList,
 
 	BindEvents: () -> types.void,
+	IsPublicKey: () -> boolean,
 }
 
 
 local API = {} :: SentinelAPI
 
+function API:IsPublicKey(): boolean
+	return Config.API_KEY:find("sentinelPublicAPI.") ~= nil
+end
+
 function API:BindEvents()
+	if self:IsPublicKey() then
+		warn("Public API Key cannot listen to Sentinel API Events.")
+		return
+	end
+
 	MessagingService:SubscribeAsync("SentinelAPI", function(data)
 		data = HttpService:JSONDecode(data);
 
@@ -62,6 +72,11 @@ function API:BindEvents()
 end
 
 function API:BanAsync(Player: Player, BanConfig: types.BanConfig): boolean
+	if self:IsPublicKey() then
+		warn("Public API Key cannot use BanAsync.")
+		return false
+	end
+
 	return self:OfflineBanAsync(Player.UserId, BanConfig)
 end
 
@@ -76,6 +91,11 @@ function API:BatchBanAsync(PlayerList: { Player }, BanConfig: types.BanConfig): 
 end
 
 function API:BatchOfflineBanAsync(UserIds: { number }, BanConfig: types.BanConfig): (boolean, number, number)
+	if self:IsPublicKey() then
+		warn("Public API Key cannot use BatchOfflineBanAsync.")
+		return false, 0, 0
+	end
+
 	local failed: number, successful: number = 0, 0
 
 	for i, v in pairs(UserIds) do
@@ -94,6 +114,11 @@ function API:BatchOfflineBanAsync(UserIds: { number }, BanConfig: types.BanConfi
 end
 
 function API:OfflineBanAsync(UserId: number, BanConfig: types.BanConfig): boolean
+	if self:IsPublicKey() then
+		warn("Public API Key cannot use OfflineBanAsync.")
+		return false
+	end
+
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
 	assert(
@@ -307,6 +332,11 @@ function API:UnbanAsync(UserId: number, Reason: string): boolean
 end
 
 function API:ProccessPendingBans()
+	if self:IsPublicKey() then
+		warn("Public API Key cannot use ProccessPendingBans.")
+		return
+	end
+
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
 	local list: types.BanList? = self:GetPendingBans()
@@ -352,6 +382,11 @@ function API:ProccessPendingBans()
 end
 
 function API:ProccessPendingUnbans()
+	if self:IsPublicKey() then
+		warn("Public API Key cannot use ProccessPendingUnbans.")
+		return
+	end
+
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
 	local list: types.BanList? = self:GetPendingUnbans()
@@ -383,6 +418,11 @@ function API:ProccessPendingUnbans()
 end
 
 function API:GetPendingBans(): types.BanList?
+	if self:IsPublicKey() then
+		warn("Public API Key cannot use GetPendingBans.")
+		return
+	end
+
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
 	local response = HttpService:RequestAsync({
@@ -410,6 +450,11 @@ function API:GetPendingBans(): types.BanList?
 end
 
 function API:GetPendingUnbans(): types.BanList?
+	if self:IsPublicKey() then
+		warn("Public API Key cannot use GetPendingUnbans.")
+		return
+	end
+	
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
 	local response = HttpService:RequestAsync({
