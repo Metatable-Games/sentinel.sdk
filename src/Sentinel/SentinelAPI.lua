@@ -255,6 +255,7 @@ function API:IsUserIdBanned(UserId: number): boolean
 		Method = "POST",
 		Headers = {
 			["Content-Type"] = "application/json",
+			["Authorization"] = "Bearer " .. Config.API_KEY,
 		},
 		Body = HttpService:JSONEncode({
 			userId = UserId,
