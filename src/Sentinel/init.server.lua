@@ -11,6 +11,7 @@ local API = require(script:WaitForChild("SentinelAPI"))
 API:BindEvents();
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local message_a: string =
 	"U2VudGluZWwgTW9kZXJhdGlvbiBHcm91cCAoU01HKSBcblxuIFRoZSBkZXZlbG9wZXIocykgZm9yIHRoaXMgZXhwZXJpZW5jZSBuZWVkIHRvIGlucHV0IGEgcHJvcGVyIEFQSSBLZXkgaW4gU2VydmVyU2NyaXB0U2VydmljZS5TZW50aW5lbC5Db25maWcubHVhLg=="
@@ -51,6 +52,11 @@ local function f64(input)
 end
 
 local function PlayerAdded(Player: Player)
+	if RunService:IsStudio() and not Config.PRODUCTION_MODE then
+		warn("Sentinel is not enabled in Studio mode.")
+		return
+	end
+
 	local isBanned: boolean, banInfo: types.BanInfo? = API:IsPlayerBanned(Player)
 
 	if Config.API_KEY == "INPUT_API_KEY_HERE" then

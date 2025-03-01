@@ -1,4 +1,6 @@
 return {
+    PRODUCTION_MODE = true;
+    
     DEBUG_INFO_ENABLED = true;
 
     API_KEY = "sentinelAPI.f29bd2c7-da37-4b01-b9b3-48496e584d0d"; -- -- To create an API key go to your guild and run /newapikey. Running this command invalidates previous key & creates a new one.
