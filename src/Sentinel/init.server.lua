@@ -4,11 +4,11 @@
 -- Repository: https://github.com/Metatable-Games/sentinel.sdk
 
 local Config = require(script:WaitForChild("Config"))
-local types = require(script:WaitForChild("Types"))
 local enum = require(script:WaitForChild("Enum"))
-local API = require(script:WaitForChild("SentinelAPI"))
+local API = require(script:WaitForChild("SentinelAPI")).new();
+local BanTypes = require(script:WaitForChild("SentinelAPI"):WaitForChild("BanAPI"):WaitForChild("Types"))
 
-API:BindEvents();
+API.BanAPI:BindEvents();
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -57,7 +57,7 @@ local function PlayerAdded(Player: Player)
 		return
 	end
 
-	local isBanned: boolean, banInfo: types.BanInfo? = API:IsPlayerBanned(Player)
+	local isBanned: boolean, banInfo: BanTypes.BanInfo? = API.BanAPI:IsPlayerBanned(Player)
 
 	if Config.API_KEY == "INPUT_API_KEY_HERE" then
 		return Player:Kick(f64(message_a))
@@ -65,7 +65,7 @@ local function PlayerAdded(Player: Player)
 
 	if isBanned and banInfo then
 		-- Player was offline banned remotely; therefore proccess internal banning aspect.
-		API:ReplicateUpdatedBan(Player.UserId, {
+		API.BanAPI:ReplicateUpdatedBan(Player.UserId, {
 			Moderator = banInfo.moderatorId,
 			BanType = banInfo.isGlobal and enum.BanType.Global or enum.BanType.Experience,
 			BanLengthType = banInfo.expires > 0 and enum.BanLengthType.Temporary or enum.BanLengthType.Permanent,
@@ -99,11 +99,11 @@ end
 if Config.UNBAN_LUAUCRON or Config.BAN_LUAUCRON then
 	while task.wait(Config.UPDATE_CYCLE) and task.wait(0.1) do
 		if Config.UNBAN_LUAUCRON then
-			API:ProccessPendingUnbans()
+			API.BanAPI:ProccessPendingUnbans()
 		end
 
 		if Config.BAN_LUAUCRON then
-			API:ProccessPendingBans()
+			API.BanAPI:ProccessPendingBans()
 		end
 	end
 end

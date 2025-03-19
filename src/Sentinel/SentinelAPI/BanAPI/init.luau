@@ -1,25 +1,27 @@
--- Copyright (c) 2024 Metatable Games, all rights reserved.
+-- Copyright (c) 2025 Metatable Games, all rights reserved.
 
 -- License: The Unlicense (Public Domain)
 -- Repository: https://github.com/Metatable-Games/sentinel.sdk
 
-local Config = require(script.Parent:WaitForChild("Config"))
-local types = require(script.Parent:WaitForChild("Types"))
-local enum = require(script.Parent:WaitForChild("Enum"))
-local RichBan = require(script.Parent:WaitForChild("RichBan"))
+local BanTypes = require(script:WaitForChild("Types"))
+
+local Config = require(script.Parent.Parent:WaitForChild("Config"))
+local types = require(script.Parent.Parent:WaitForChild("Types"))
+local enum = require(script.Parent.Parent:WaitForChild("Enum"))
+local RichBan = require(script:WaitForChild("RichBan"))
 
 local HttpService = game:GetService("HttpService")
 local MessagingService = game:GetService("MessagingService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-export type SentinelAPI = {
+export type API = {
 	-- Methods
-	BanAsync: (Player: Player, BanConfig: types.BanConfig) -> boolean,
-	OfflineBanAsync: (UserId: number, BanConfig: types.BanConfig) -> boolean,
+	BanAsync: (Player: Player, BanConfig: BanTypes.BanConfig) -> boolean,
+	OfflineBanAsync: (UserId: number, BanConfig: BanTypes.BanConfig) -> boolean,
 
-	BatchBanAsync: (PlayerList: { Player }, BanConfig: types.BanConfig) -> (boolean, number, number),
-	BatchOfflineBanAsync: (UserIds: { number }, BanConfig: types.BanConfig) -> (boolean, number, number),
+	BatchBanAsync: (PlayerList: { Player }, BanConfig: BanTypes.BanConfig) -> (boolean, number, number),
+	BatchOfflineBanAsync: (UserIds: { number }, BanConfig: BanTypes.BanConfig) -> (boolean, number, number),
 
 	UnbanAsync: (UserId: number, Reason: string) -> boolean,
 
@@ -29,22 +31,24 @@ export type SentinelAPI = {
 	ProccessPendingUnbans: () -> types.void,
 	ProccessPendingBans: () -> types.void,
 
-	GetPendingBans: () -> types.BanList,
-	GetPendingUnbans: () -> types.BanList,
+	GetPendingBans: () -> BanTypes.BanList,
+	GetPendingUnbans: () -> BanTypes.BanList,
 
 	BindEvents: () -> types.void,
-	IsPublicKey: () -> boolean,
 }
 
+local API = {}
+API.__index = API
 
-local API = {} :: SentinelAPI
-
-function API:IsPublicKey(): boolean
-	return Config.API_KEY:find("sentinelPublicAPI.") ~= nil
+-- Usage: SentinelAPI.BanAPI:Method(...)
+function API.new(core)
+	return setmetatable({
+        core = core
+    }, API)
 end
 
 function API:BindEvents()
-	if self:IsPublicKey() then
+	if self.core:IsPublicKey() then
 		warn("Public API Key cannot listen to Sentinel API Events.")
 		return
 	end
@@ -71,8 +75,8 @@ function API:BindEvents()
 	end)
 end
 
-function API:BanAsync(Player: Player, BanConfig: types.BanConfig): boolean
-	if self:IsPublicKey() then
+function API:BanAsync(Player: Player, BanConfig: BanTypes.BanConfig): boolean
+	if self.core:IsPublicKey() then
 		warn("Public API Key cannot use BanAsync.")
 		return false
 	end
@@ -80,7 +84,7 @@ function API:BanAsync(Player: Player, BanConfig: types.BanConfig): boolean
 	return self:OfflineBanAsync(Player.UserId, BanConfig)
 end
 
-function API:BatchBanAsync(PlayerList: { Player }, BanConfig: types.BanConfig): (boolean, number, number)
+function API:BatchBanAsync(PlayerList: { Player }, BanConfig: BanTypes.BanConfig): (boolean, number, number)
 	local userids = {}
 
 	for i, v in pairs(PlayerList) do
@@ -90,8 +94,8 @@ function API:BatchBanAsync(PlayerList: { Player }, BanConfig: types.BanConfig): 
 	return self:BatchOfflineBanAsync(userids, BanConfig)
 end
 
-function API:BatchOfflineBanAsync(UserIds: { number }, BanConfig: types.BanConfig): (boolean, number, number)
-	if self:IsPublicKey() then
+function API:BatchOfflineBanAsync(UserIds: { number }, BanConfig: BanTypes.BanConfig): (boolean, number, number)
+	if self.core:IsPublicKey() then
 		warn("Public API Key cannot use BatchOfflineBanAsync.")
 		return false, 0, 0
 	end
@@ -113,8 +117,8 @@ function API:BatchOfflineBanAsync(UserIds: { number }, BanConfig: types.BanConfi
 	return failed <= 0, successful, failed
 end
 
-function API:OfflineBanAsync(UserId: number, BanConfig: types.BanConfig): boolean
-	if self:IsPublicKey() then
+function API:OfflineBanAsync(UserId: number, BanConfig: BanTypes.BanConfig): boolean
+	if self.core:IsPublicKey() then
 		warn("Public API Key cannot use OfflineBanAsync.")
 		return false
 	end
@@ -295,7 +299,7 @@ function API:IsUserIdBanned(UserId: number): boolean
 	return data.isActive, data
 end
 
-function API:ReplicateUpdatedBan(UserId: number, BanConfig: types.BanConfig): boolean
+function API:ReplicateUpdatedBan(UserId: number, BanConfig: BanTypes.BanConfig): boolean
 	BanConfig._bypassChecks = true
 	return self:OfflineBanAsync(UserId, BanConfig)
 end
@@ -333,21 +337,21 @@ function API:UnbanAsync(UserId: number, Reason: string): boolean
 end
 
 function API:ProccessPendingBans()
-	if self:IsPublicKey() then
+	if self.core:IsPublicKey() then
 		warn("Public API Key cannot use ProccessPendingBans.")
 		return
 	end
 
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
-	local list: types.BanList? = self:GetPendingBans()
+	local list: BanTypes.BanList? = self:GetPendingBans()
 	local f: number, s: number = 0, 0
 
 	if list == nil then
 		return
 	end
 
-	for i, v: types.BanInfo in pairs(list) do
+	for i, v: BanTypes.BanInfo in pairs(list) do
 		if not v.isActive or v.isAppealed or v.expires > 0 and v.expires <= os.time() then
 			warn("Ban expired before chance to ban, Moving on.")
 			continue
@@ -383,14 +387,14 @@ function API:ProccessPendingBans()
 end
 
 function API:ProccessPendingUnbans()
-	if self:IsPublicKey() then
+	if self.core:IsPublicKey() then
 		warn("Public API Key cannot use ProccessPendingUnbans.")
 		return
 	end
 
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
-	local list: types.BanList? = self:GetPendingUnbans()
+	local list: BanTypes.BanList? = self:GetPendingUnbans()
 	local f: number, s: number = 0, 0
 
 	if list == nil then
@@ -418,8 +422,8 @@ function API:ProccessPendingUnbans()
 	end
 end
 
-function API:GetPendingBans(): types.BanList?
-	if self:IsPublicKey() then
+function API:GetPendingBans(): BanTypes.BanList?
+	if self.core:IsPublicKey() then
 		warn("Public API Key cannot use GetPendingBans.")
 		return
 	end
@@ -450,8 +454,8 @@ function API:GetPendingBans(): types.BanList?
 	return HttpService:JSONDecode(response.Body).list
 end
 
-function API:GetPendingUnbans(): types.BanList?
-	if self:IsPublicKey() then
+function API:GetPendingUnbans(): BanTypes.BanList?
+	if self.core:IsPublicKey() then
 		warn("Public API Key cannot use GetPendingUnbans.")
 		return
 	end
@@ -482,4 +486,4 @@ function API:GetPendingUnbans(): types.BanList?
 	return HttpService:JSONDecode(response.Body).list
 end
 
-return API
+return API :: typeof(API) & API
