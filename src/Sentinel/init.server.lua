@@ -1,12 +1,28 @@
--- Copyright (c) 2024 Metatable Games, all rights reserved.
+-- Copyright (c) 2025 Metatable Games, all rights reserved.
 
 -- License: The Unlicense (Public Domain)
 -- Repository: https://github.com/Metatable-Games/sentinel.sdk
+
+local HttpService = game:GetService("HttpService")
 
 local Config = require(script:WaitForChild("Config"))
 local enum = require(script:WaitForChild("Enum"))
 local API = require(script:WaitForChild("SentinelAPI")).new();
 local BanTypes = require(script:WaitForChild("SentinelAPI"):WaitForChild("BanAPI"):WaitForChild("Types"))
+
+local SentinelVersion = "2.0.0"
+
+if not HttpService.HttpEnabled then
+	return error("Sentinel requires HttpEnabled to be true.");
+end
+
+local LatestVersion = HttpService:JSONDecode(HttpService:GetAsync("https://raw.githubusercontent.com/Metatable-Games/sentinel.sdk/main/version.json")).version
+
+if SentinelVersion == LatestVersion then
+	warn("Sentinel is up to date!")
+else
+	warn("Sentinel is outdated; please update to the latest version!")
+end
 
 API.BanAPI:BindEvents();
 
