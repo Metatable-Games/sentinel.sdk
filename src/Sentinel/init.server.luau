@@ -5,6 +5,7 @@
 
 local Config = require(script:WaitForChild("Config"))
 local enum = require(script:WaitForChild("Enum"))
+local Util = require(script:WaitForChild("Util"))
 local API = require(script:WaitForChild("SentinelAPI")).new();
 local BanTypes = require(script:WaitForChild("SentinelAPI"):WaitForChild("BanAPI"):WaitForChild("Types"))
 
@@ -17,39 +18,6 @@ local message_a: string =
 	"U2VudGluZWwgTW9kZXJhdGlvbiBHcm91cCAoU01HKSBcblxuIFRoZSBkZXZlbG9wZXIocykgZm9yIHRoaXMgZXhwZXJpZW5jZSBuZWVkIHRvIGlucHV0IGEgcHJvcGVyIEFQSSBLZXkgaW4gU2VydmVyU2NyaXB0U2VydmljZS5TZW50aW5lbC5Db25maWcubHVhLg=="
 local message_b: string =
 	"WW91ciBhY2NvdW50IGlzIHN0aWxsIGN1cnJlbnRseSBiYW5uZWQgYnkgU2VudGluZWwgTW9kZXJhdGlvbiBHcm91cCAoU01HKSBPQ0FQSSBmb3IgJXMuIFRvIGFwcGVhbCB0aGlzIHBsZWFzZSBjb250YWN0IHRoZSBzZXJ2ZXIgYWRtaW5pc3RyYXRvcnMh"
-local b64chars: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-local b64lookup = {}
-
-for i = 1, #b64chars do
-	b64lookup[b64chars:sub(i, i)] = i - 1
-end
-
-local function f64(input)
-	input = input:gsub("[^%w+/=]", "") -- Remove any characters that are not base64 valid
-	local output = {}
-	local input_length = #input
-
-	for i = 1, input_length, 4 do
-		local a = b64lookup[input:sub(i, i)] or 0
-		local b = b64lookup[input:sub(i + 1, i + 1)] or 0
-		local c = b64lookup[input:sub(i + 2, i + 2)] or 0
-		local d = b64lookup[input:sub(i + 3, i + 3)] or 0
-
-		-- Calculate the 24-bit number from Base64 values
-		local n = bit32.lshift(a, 18) + bit32.lshift(b, 12) + bit32.lshift(c, 6) + d
-
-		-- Extract and append the bytes to the output table
-		table.insert(output, string.char(bit32.rshift(n, 16) % 256))
-		if input:sub(i + 2, i + 2) ~= "=" then
-			table.insert(output, string.char(bit32.rshift(n, 8) % 256))
-		end
-		if input:sub(i + 3, i + 3) ~= "=" then
-			table.insert(output, string.char(n % 256))
-		end
-	end
-
-	return table.concat(output)
-end
 
 local function PlayerAdded(Player: Player)
 	if RunService:IsStudio() and not Config.PRODUCTION_MODE then
@@ -60,7 +28,7 @@ local function PlayerAdded(Player: Player)
 	local isBanned: boolean, banInfo: BanTypes.BanInfo? = API.BanAPI:IsPlayerBanned(Player)
 
 	if Config.API_KEY == "INPUT_API_KEY_HERE" then
-		return Player:Kick(f64(message_a))
+		return Player:Kick(Util.Base64:Decode(message_a))
 	end
 
 	if isBanned and banInfo then
@@ -76,7 +44,7 @@ local function PlayerAdded(Player: Player)
 			BanKnownAlts = true,
 		})
 
-		return Player:Kick(f64(message_b):format(banInfo.publicReason))
+		return Player:Kick(Util.Base64:Decode(message_b):format(banInfo.publicReason))
 	end
 end
 
