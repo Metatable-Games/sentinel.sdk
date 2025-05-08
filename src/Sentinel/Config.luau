@@ -1,5 +1,5 @@
 return {
-    PRODUCTION_MODE = true;
+    PRODUCTION_MODE = game.PlaceId ~= 75521396999004;
     
     DEBUG_INFO_ENABLED = true;
 

@@ -20,12 +20,16 @@ local message_b: string =
 	"WW91ciBhY2NvdW50IGlzIHN0aWxsIGN1cnJlbnRseSBiYW5uZWQgYnkgU2VudGluZWwgTW9kZXJhdGlvbiBHcm91cCAoU01HKSBPQ0FQSSBmb3IgJXMuIFRvIGFwcGVhbCB0aGlzIHBsZWFzZSBjb250YWN0IHRoZSBzZXJ2ZXIgYWRtaW5pc3RyYXRvcnMh"
 
 local function PlayerAdded(Player: Player)
-	if RunService:IsStudio() and not Config.PRODUCTION_MODE then
+	if RunService:IsStudio() and Config.PRODUCTION_MODE then
 		warn("Sentinel is not enabled in Studio mode.")
 		return
 	end
 
 	local isBanned: boolean, banInfo: BanTypes.BanInfo? = API.BanAPI:IsPlayerBanned(Player)
+
+	if RunService:IsStudio() and not Config.PRODUCTION_MODE then
+		warn("Is Banned: ", isBanned, " | Ban Info: ", banInfo)
+	end
 
 	if Config.API_KEY == "INPUT_API_KEY_HERE" then
 		return Player:Kick(Util.Base64:Decode(message_a))

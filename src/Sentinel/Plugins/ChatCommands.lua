@@ -58,7 +58,7 @@ function ChatCommands:Start()
 					return
 				end
 
-				self.API:BanAsync(target, {
+				self.API.BanAPI:BanAsync(target, {
 					Moderator = Player.UserId,
 
 					BanType = isGlobal and self.Enum.BanType.Global or self.Enum.BanType.Experience,
@@ -89,7 +89,7 @@ function ChatCommands:Start()
 					return
 				end
 
-				self.API:BanAsync(target, {
+				self.API.BanAPI:BanAsync(target, {
 					Moderator = Player.UserId,
 
 					BanType = isGlobal and self.Enum.BanType.Global or self.Enum.BanType.Experience,
