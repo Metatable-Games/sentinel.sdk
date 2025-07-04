@@ -77,7 +77,7 @@ end
 
 function API:BanAsync(Player: Player, BanConfig: BanTypes.BanConfig): boolean
 	if self.core:IsPublicKey() then
-		warn("Public API Key cannot use BanAsync.")
+		warn("Public API Key cannot use BanAsync. The API request will fail with 403 Forbidden.")
 		return false
 	end
 
@@ -85,6 +85,11 @@ function API:BanAsync(Player: Player, BanConfig: BanTypes.BanConfig): boolean
 end
 
 function API:BatchBanAsync(PlayerList: { Player }, BanConfig: BanTypes.BanConfig): (boolean, number, number)
+	if self.core:IsPublicKey() then
+		warn("Public API Key cannot use BatchBanAsync. The API request will fail with 403 Forbidden.")
+		return false
+	end
+
 	local userids = {}
 
 	for i, v in pairs(PlayerList) do
@@ -96,7 +101,7 @@ end
 
 function API:BatchOfflineBanAsync(UserIds: { number }, BanConfig: BanTypes.BanConfig): (boolean, number, number)
 	if self.core:IsPublicKey() then
-		warn("Public API Key cannot use BatchOfflineBanAsync.")
+		warn("Public API Key cannot use BatchOfflineBanAsync. The API request will fail with 403 Forbidden.")
 		return false, 0, 0
 	end
 
@@ -119,7 +124,7 @@ end
 
 function API:OfflineBanAsync(UserId: number, BanConfig: BanTypes.BanConfig): boolean
 	if self.core:IsPublicKey() then
-		warn("Public API Key cannot use OfflineBanAsync.")
+		warn("Public API Key cannot use OfflineBanAsync. The API request will fail with 403 Forbidden.")
 		return false
 	end
 
@@ -285,14 +290,12 @@ function API:IsUserIdBanned(UserId: number): boolean
 	if data.isAppealed then
 		data.isActive = false
 		data.expires = 0
-		--warn("Ban appealed.")
 		self:UnbanAsync(data.robloxId, "Ban was appealed.")
 	end
 
 	if data.isActive and data.expires > 0 and data.expires <= os.time() then
 		data.isActive = false
 		data.expires = 0
-		--warn("Ban expired.")
 		self:UnbanAsync(data.robloxId, "Ban automatically expired.")
 	end
 
@@ -305,6 +308,11 @@ function API:ReplicateUpdatedBan(UserId: number, BanConfig: BanTypes.BanConfig):
 end
 
 function API:UnbanAsync(UserId: number, Reason: string): boolean
+	if self.core:IsPublicKey() then
+		warn("Public API Key cannot use UnbanAsync. The API request will fail with 403 Forbidden.")
+		return false
+	end
+
 	assert(HttpService.HttpEnabled == true, "HttpService must be enabled for Sentinel to properly work!")
 
 	local response = HttpService:RequestAsync({
@@ -338,7 +346,12 @@ end
 
 function API:ProccessPendingBans()
 	if self.core:IsPublicKey() then
-		warn("Public API Key cannot use ProccessPendingBans.")
+		warn("Public API Key cannot use ProccessPendingBans. The API request will fail with 403 Forbidden.")
+		return
+	end
+
+	if RunService:IsStudio() and Config.PRODUCTION_MODE then
+		warn("Sentinel cannot proccess pending bans while in Studio in production mode. See issue #2 on GitHub.")
 		return
 	end
 
@@ -353,7 +366,10 @@ function API:ProccessPendingBans()
 
 	for i, v: BanTypes.BanInfo in pairs(list) do
 		if not v.isActive or v.isAppealed or v.expires > 0 and v.expires <= os.time() then
-			warn("Ban expired before chance to ban, Moving on.")
+			if Config.DEBUG_INFO_ENABLED then
+				warn("Ban expired or was revoked before chance to ban, Moving on.")
+			end
+
 			continue
 		end
 
@@ -388,7 +404,12 @@ end
 
 function API:ProccessPendingUnbans()
 	if self.core:IsPublicKey() then
-		warn("Public API Key cannot use ProccessPendingUnbans.")
+		warn("Public API Key cannot use ProccessPendingUnbans. The API request will fail with 403 Forbidden.")
+		return
+	end
+
+	if RunService:IsStudio() and Config.PRODUCTION_MODE then
+		warn("Sentinel cannot proccess pending unbans while in Studio in production mode. See issue #2 on GitHub.")
 		return
 	end
 
@@ -424,7 +445,7 @@ end
 
 function API:GetPendingBans(): BanTypes.BanList?
 	if self.core:IsPublicKey() then
-		warn("Public API Key cannot use GetPendingBans.")
+		warn("Public API Key cannot use GetPendingBans. The API request will fail with 403 Forbidden.")
 		return
 	end
 
@@ -456,7 +477,7 @@ end
 
 function API:GetPendingUnbans(): BanTypes.BanList?
 	if self.core:IsPublicKey() then
-		warn("Public API Key cannot use GetPendingUnbans.")
+		warn("Public API Key cannot use GetPendingUnbans. The API request will fail with 403 Forbidden.")
 		return
 	end
 	
