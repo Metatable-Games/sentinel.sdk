@@ -6,7 +6,7 @@
 local HttpService = game:GetService("HttpService")
 local Config = require(script.Parent:WaitForChild("Config"))
 
-local SentinelVersion = "2.0.0"
+local SentinelVersion = "2.0.2"
 
 export type SentinelAPI = {}
 
